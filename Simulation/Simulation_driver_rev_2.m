@@ -1,0 +1,450 @@
+
+%Current Inertia tensor is higher than expected and has high products in xy
+%direction to test the sim, actual inertia tensor should be easier to work
+%with
+
+I = 20*[120.122 14.133 .021; 14.133 120.122 -.02; .021 -.02 134.255]*.0002926; 
+I_inv = inv(I); 
+    
+%Step 1: Initialize states and properties
+
+%Order of state vec: x,y,z,vx,vy,vz,thetax,thetay,thetaz,wx,wy,wz
+
+current_state = zeros(1,12); 
+state_mat = current_state; %will use to track states over time, add new state every iteration
+time = 0;
+dt = .01; %time step size
+
+end_con = 0; %Binary variable, this becomes 1 when the final event is complete
+current_event = 1; %Start on first event, add 1 for every new event
+event_complete = 0; %Binary variable,0 if currently working on finishing an event, 1 if between states and completing attitude 
+%adjustments or waiting for time requirements to be met
+event_ending_time = []; %keep track of when events are completed in case the next event needs to wait a certain amount of 
+%time before starting
+
+m_sc = 3.4958; %Using mass of combined system
+
+%Step 2: build the event matrix 
+
+%First column is the variable to check against to determine if the event
+%has started. Corresponds to the column in the state, but if it's 0 it's
+%time
+
+%Second column is the value to check against to determine if the event
+%has started. If it's time, the value is time since the previous event
+%ended (tracked in event_ending_time).
+
+%Third column is the tolerance for the value above
+
+%Forth column is the variable that's being changed
+
+%Fifth column is the value of the variable reached that determines if the
+%event is concluded (note that angles will be in degrees for now)
+
+%Sixth column is the tolerance for the value above
+
+event_mat = [1 0 .1 1 10 .01; 0 2 .1 8 90*pi/180 .01; 0 2 .1 9 90*pi/180 .05];
+direction = 1; %First move is in the positive direction, hard coding this seems acceptable
+
+%Start with initial intended state vector, this will be added to as we get
+%to new events. Think of intended state as where you should be and current
+%state is where you are. Both will be continually updated throughout the
+%mission/sim
+
+intended_state = current_state;
+intended_state(1) = 10; %first change is move forwards in x direction, manually adding first maneuver
+
+state_check = [7 10 8 11 9 12 7 10 8 11 9 12]; %order of attitude checks you do, putting in vector to allow for easy changing
+%currently check attitude then attitude rate for x, then y, then z. Then do
+%the whole thing again
+
+while end_con == 0
+    
+    %BEGIN EVENT LOGIC
+    
+if event_complete == 0 %If we're in the middle of an event
+    
+    change_var = event_mat(current_event, 4); %the variable we're changing, will use this to see if the event has ended.
+    %This will typically be a position
+    
+    %Following if statements determine if you've exceeded the necessary
+    %value for the event to be done.
+    if direction == 1
+        if current_state(change_var) > event_mat(current_event, 5) | ... %you've passed target position or you're within tolerance
+                abs(current_state(change_var) - event_mat(current_event, 5)) < event_mat(current_event, 6)
+            event_complete = 1;
+        end
+    else
+        if current_state(change_var) < event_mat(current_event, 5) | ... %you've passed target position or you're within tolerance
+                abs(current_state(change_var) - event_mat(current_event, 5)) < event_mat(current_event, 6)
+            event_complete = 1;
+        end
+    end
+    
+    if event_complete == 1
+        %If you've passed the ending conditions for the event
+        
+        force = [0 0 0]; %wait until next iteration to do anything with the thrusters, it'll keep things simpler
+        torque = [0 0 0];
+        event_ending_time = [event_ending_time; time]; %logging the time in case the next event needs it
+        num_attitude_checks = 0; %next step is to slow down completely, then check attitudes. This keeps track of 
+        %how many attitude variables we've corrected/verified are good
+        
+    else %We're still going with the event, keep activating control system to determine how to do manuever
+        
+        if change_var < 7 %linear change
+            vel_tar = .5; %want to translate at .5 m/s
+            calc_accl = 1/m_sc; %force mag = 1 N (2x .5N thrusters). Update with experimental data!
+            %Estimating the acceleration so we can use kinematics to
+            %determine where to start slowing down
+        else
+            vel_tar = 15*pi/180; %want to rotate at 15 deg/s
+            calc_accl = .15*I_inv(change_var-6, change_var-6); %torque = .15 Nm, alpha = torque*I inverse,
+            %Estimating the acceleration so we can use kinematics to
+            %determine where to start slowing down
+        end
+            
+        [force, torque] = maneuver_control(current_state, intended_state, change_var, calc_accl, vel_tar);
+        %Function included at the bottom, uses the difference between
+        %current and intended state to determine which thrusters to fire
+    end
+    
+elseif event_complete == 1 && num_attitude_checks ==  0
+    %You just finished the event and need to slow the spacecraft down
+    
+    %If velocity difference is in tolerance, do nothing and start doing atttitude checks.
+    %If not, slow down. 
+    
+    vel_dif = (-intended_state(change_var+3) + current_state(change_var+3)); 
+    %Works as long as maneuver is just to change position, which shouldn't
+    %change
+    %Positive means you're over what you're supposed to be
+    
+    force = [0 0 0]; %default values
+    torque = [0 0 0];
+    
+    if change_var < 7 %previous maneuver was translation
+        dir = change_var;
+        vel_tol = .01;
+        if abs(vel_dif) > vel_tol %moving too fast in one direction
+            force(dir) = -vel_dif/abs(vel_dif); %accelerate in opposite direction of velocity to slow down
+        else
+            num_attitude_checks = 1; %you've slowed down enough, move onto attitude checks
+        end
+    else %Previous maneuver was rotation
+        dir = change_var - 6;
+        vel_tol = .02; %Angular velocity tolerance
+        if abs(vel_dif) > vel_tol %moving too fast in one direction
+            torque(dir) = -.15*vel_dif/abs(vel_dif); %accelerate in opposite direction of velocity to slow down
+        else
+            num_attitude_checks = 1; %you've slowed down enough, move onto attitude checks
+        end
+    end 
+    
+elseif event_complete == 1 && num_attitude_checks < length(state_check) && num_attitude_checks > 0 
+    % If not in the middle of the event AND not all attitudes/rates are
+    % good, but you have fully slowed down
+    
+    force = [0 0 0]; torque = [0 0 0]; %default values
+   
+    theta_tol = .2*pi/180; %converting to radians, these are easy things to use for tuning
+    omega_tol = .1*pi/180; 
+   
+    current_col = state_check(num_attitude_checks); %getting which variable is being checked/fixed
+    
+    if current_col < 10 %If you're fixing an attitude position
+        if abs(current_state(current_col) - intended_state(current_col)) > theta_tol 
+        %If attitude is too messed up 
+        
+            [force, torque] = attitude_control(current_state, intended_state, current_col);
+           
+        else %Attitude position is good, can move onto the next one
+            num_attitude_checks = num_attitude_checks + 1;
+        end
+        
+    elseif current_col < 13 %If you're fixing an angular velocity
+        if abs(current_state(current_col) - intended_state(current_col)) > omega_tol %angular velocity is messed up
+            
+            [force, torque] = attitude_control(current_state, intended_state, current_col);
+            
+            else %Attitude position is good, can move onto the next one
+                num_attitude_checks = num_attitude_checks + 1; %when this gets past 12 we're done with attitude maintenance
+        end
+    end
+    
+    
+else %If we're not in an event and all the attitudes have been verified to be good, see if the next event has started
+    %If next event has started, wait until next timestep to start event,
+    %turn on thrusters, etc to keep things simple
+    
+    force = [0 0 0]; torque = [0 0 0]; %default values. If not enough time has passed before the next event this will stay 0
+    
+    if current_event == length(event_mat(:,1)) %If there's no more events then you're done
+        break
+    end
+    
+    next_event_var = event_mat(current_event+1, 1); %Variable to check if the next event has started
+    
+    if next_event_var == 0 %If the next condition is based on time
+        if time - event_ending_time(end) > event_mat(current_event, 3)
+            %Checking if enough time has passed
+            
+            % Update intended state to include the target value of the next event
+            change_var = event_mat(current_event+1, 4); %the variable we're changing
+            intended_state(change_var) = event_mat(current_event+1, 5);
+            
+            current_event = current_event + 1;
+            event_complete = 0; %we're back to the start of the next event
+            direction = (intended_state(change_var) - current_state(change_var))...
+                /abs(intended_state(change_var) - current_state(change_var));
+            %direction is 1 if next move is in the positive direction, -1
+            %if next move is in the negative direction
+          
+        end
+    else
+     
+        
+        if abs(current_state(next_event_var) - event_mat(current_event+1, 2)) < event_mat(current_event, 3) 
+            %If conditions for next event aren't based on time
+            
+            check_var = event_mat(current_event+1, 1); %the variable we're checking against gives position of next state
+            intended_state(check_var) = event_mat(current_event+1, 2); 
+            
+            change_var = event_mat(current_event+1, 4); %the variable we're changing
+            intended_state(change_var) = event_mat(current_event+1, 5);
+            %The updated value you're targeting is in event mat, and that's
+            %what your intended state becomes
+            
+            intended_state;
+            current_state;
+            current_event = current_event + 1;
+            event_complete = 0; %we're back to the start of the next event
+            
+            direction = (intended_state(change_var) - current_state(change_var))...
+                /abs(intended_state(change_var) - current_state(change_var));
+        end
+    end
+    
+end
+
+%END EVENT LOGIC
+
+    %Numerical integration - for now is simple Forward Euler time stepping
+    %scheme
+    
+    time = time + dt;
+
+     a = force/m_sc;
+     alpha = torque*I_inv;
+     current_state(4:6) = current_state(4:6) + a*dt; 
+     current_state(10:12) = current_state(10:12) + alpha*dt; 
+     current_state(1:3) = current_state(1:3) + dt*current_state(4:6);
+     current_state(7:9) = current_state(7:9) + dt*current_state(10:12);
+     
+     state_mat = [state_mat; current_state];
+     
+    if event_complete == 1 && current_event == length(event_mat(:,1)) %If you've completed the last event, 
+        end_con == 1;
+    end  
+    
+end
+
+% PLOTS
+
+%First set is linear positions and velocities
+figure (1)
+title('Linear Postions and Velocities')
+time_vec = linspace(0, time, length(state_mat(:,1)));
+
+subplot(3,2,1)
+plot(time_vec, state_mat(:,1))
+xlabel('time (seconds)')
+ylabel('x position (m)')
+
+subplot(3,2,2)
+plot(time_vec, state_mat(:,4))
+xlabel('time (seconds)')
+ylabel('x velocity (m/s)')
+
+subplot(3,2,3)
+plot(time_vec, state_mat(:,2))
+xlabel('time (seconds)')
+ylabel('y position (m)')
+
+subplot(3,2,4)
+plot(time_vec, state_mat(:,5))
+xlabel('time (seconds)')
+ylabel('y velocity (m/s)')
+
+subplot(3,2,5)
+plot(time_vec, state_mat(:,3))
+xlabel('time (seconds)')
+ylabel('z position (m)')
+
+subplot(3,2,6)
+plot(time_vec, state_mat(:,6))
+xlabel('time (seconds)')
+ylabel('z velocity (m/s)')
+
+
+%Figure 2: Angular positions and angular velocities
+figure (2)
+title('Angular Positions and Velocities')
+
+subplot(3,2,1)
+plot(time_vec, (180/pi)*state_mat(:,7))
+xlabel('time (seconds)')
+ylabel('x angular position (deg)')
+
+subplot(3,2,2)
+plot(time_vec, (180/pi)*state_mat(:,10))
+xlabel('time (seconds)')
+ylabel('x angular velocity (deg/s)')
+
+subplot(3,2,3)
+plot(time_vec, (180/pi)*state_mat(:,8))
+xlabel('time (seconds)')
+ylabel('y angular position (deg)')
+
+subplot(3,2,4)
+plot(time_vec, (180/pi)*state_mat(:,11))
+xlabel('time (seconds)')
+ylabel('y angular velocity (deg/s)')
+
+subplot(3,2,5)
+plot(time_vec, (180/pi)*state_mat(:,9))
+xlabel('time (seconds)')
+ylabel('z angular position (deg)')
+
+subplot(3,2,6)
+plot(time_vec, (180/pi)*state_mat(:,12))
+xlabel('time (seconds)')
+ylabel('z angular velocity (deg/s)')
+
+%toc
+
+function [force, torque] = maneuver_control(current_state, intended_state, col, calc_accl, vel_tar)
+%Col is the variable you're changing, 1-3 are for linear position and
+%7-9 are for angular position. Currently doesn't support just changing the
+%velocity
+
+%calc_accl is the calculated acceleration (m/s^2 or rad/s^2), used to
+%determine when to slow down
+%velocity_tar is the linear or angular velocity you want to move/rotate at
+
+%Function to do the logic behind controlling maneuvers
+%Later step: log thruster on times
+
+thrust_mag = .5*2; %N, use two thrusters at once
+torque_mag = thrust_mag*.15; 
+
+%Assign default values of no thruster fires, change if one is needed
+force = [0 0 0];
+torque = [0 0 0];
+
+if col < 4 %changing the linear position
+    dir = col;
+    pos_dif = (-intended_state(col) + current_state(col)); %positive means we're over what we want
+    vel_dif = (-intended_state(col+3) + current_state(col+3));
+    vel_cur = current_state(col+3);
+    
+    if abs(pos_dif) < vel_cur^2/(2*calc_accl) 
+        %If you're close enough to the target position that if you don't
+        %start slowing down you'll overshoot it, deaccelerate
+        
+        if vel_cur == 0
+            vel_cur = vel_cur + .0001; %can't divide by 0
+        end
+        
+        force(dir) = -thrust_mag*vel_cur/abs(vel_cur); %- or 1 * thrust magnitude
+        
+    elseif pos_dif > 0 %you're too far in the positive direction, but not close enough to slow down
+        if vel_cur >= -vel_tar %unless you're moving fast enough in negative direction, move backwards
+            force(dir) = -thrust_mag;
+        end
+        
+    else %too far rotated in negative direction, but not close enough to slow down
+        if vel_cur <= vel_tar %unless you're moving fast enough in positive direction, move forwards
+            force(dir) = thrust_mag;
+        end
+    end
+        
+else %need the change the angular position. Logic is same as above. Note that all math is done in radians
+    dir = col-6;
+    theta_dif = (-intended_state(col) + current_state(col)); %positive means we're over what we want
+    omega_dif = (-intended_state(col+3) + current_state(col+3));
+    omega_cur = current_state(col+3);
+    
+    if abs(theta_dif) < omega_cur^2/(2*calc_accl) 
+        %If how long you have to go is less than how long it takes to slow
+        %down, slow down
+        
+        if omega_cur == 0
+            omega_cur = omega_cur + .0001; %can't divide by 0
+        end
+        
+        torque(dir) = -torque_mag*omega_cur/abs(omega_cur); %- or 1 * thrust magnitude to slow it down
+        
+    elseif theta_dif > 0 %you're too far in the positive direction, but not close enough to slow down
+        if omega_cur >= -vel_tar %unless I'm moving fast enough in negative direction, move backwards
+            torque(dir) = -torque_mag;
+        end
+        
+    else %too far rotated in negative direction, but not close enough to slow down
+        if omega_cur <= vel_tar %unless I'm moving fast enough in positive direction, move forwards
+            torque(dir) = torque_mag;
+        end
+    end
+    
+end
+end
+
+function [force, torque] = attitude_control(current_state, intended_state, col)
+%Function to get the attitude back to targeted state between maneuvers
+
+force = [0 0 0]; %Not doing any translations here 
+torque = [0 0 0]; %initialization, will stay like this if we're on the right course at the moment
+
+thrust_mag = .5*2; %N, use two thrusters at once
+torque_mag = thrust_mag*.15; 
+
+%dir is the direction that we're fixing, is 1 for x, 2 for y, 3 for z
+%col is the column of the state vector that needs to be fixed, for example
+%y position is 8 and y velocity is 11
+
+omega_tar = 2*pi/180; %target speed to do corrections is 2 deg/s. Good thing to tune
+
+if col < 10 %changing the attitude position
+    dir = col-6;
+    theta_dif = (-intended_state(col) + current_state(col)); %positive means we're over what we want
+    omega_dif = (-intended_state(col+3) + current_state(col+3));
+    omega_cur = current_state(col+3);
+
+    if theta_dif > 0 %too far rotated in the positive direction
+        if omega_cur >= -omega_tar %unless I'm moving fast enough in negative direction, rotate backwards
+            torque(dir) = -torque_mag;
+        end
+        
+    else %too far rotated in negative direction
+        if omega_cur <= omega_tar %unless I'm moving fast enough in positive direction, rotate forwards
+            torque(dir) = torque_mag;
+        end
+    end
+        
+else %need the change the angular rate
+    dir = col-9;
+    theta_dif = (-intended_state(col-3) + current_state(col-3)); %positive means we're over what we want
+    omega_dif = (-intended_state(col) + current_state(col));
+    omega_cur = current_state(col)*180/pi;
+    
+    if omega_dif > 0 %moving too fast in positive direction, slow down
+        torque(dir) = -torque_mag; 
+        
+    elseif omega_dif < 0 %moving too fast in negative direction, accelerate in positive direction
+        torque(dir) = torque_mag;
+    end
+    
+end
+
+   
+end
