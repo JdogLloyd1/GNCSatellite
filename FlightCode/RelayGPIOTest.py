@@ -23,7 +23,7 @@ GPIO.setup(23, GPIO.OUT)
 GPIO.setup(24, GPIO.OUT)
 GPIO.setup(25, GPIO.OUT)
 
-# High voltage closes circuit, low voltage opens circuit 
+# High voltage opens circuit, low voltage closes circuit 
 for i in range(10):
     GPIO.output(4, GPIO.LOW)
     GPIO.output(5, GPIO.LOW)
