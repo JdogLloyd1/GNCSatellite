@@ -1,0 +1,10 @@
+git add -A .
+git commit -m ''
+git push
+
+
+git fetch
+git pull
+
+git submodule add --url-- --Folder name--
+
