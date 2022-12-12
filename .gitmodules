@@ -1,0 +1,6 @@
+[submodule "Fusion"]
+	path = Fusion
+	url = https://github.com/xioTechnologies/Fusion.git
+[submodule "hx711py"]
+	path = hx711py
+	url = https://github.com/tatobari/hx711py.git
