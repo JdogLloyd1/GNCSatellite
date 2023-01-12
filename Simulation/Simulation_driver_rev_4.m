@@ -64,11 +64,18 @@ event_mat =  [0 .25 .1 9 1.0261 .01; 0 .25 .1 8 -.1717 .05; 0 0.25 .1 1 1 .01; 0
 %state is where you are. Both will be continually updated throughout the
 %mission/sim
 
-direction = 1;
+%Initialize intended state, current state, the variables of interest, and
+%initial direction
 
 intended_state = current_state;
-intended_state(9) = 1.0261; %first change is move forwards in x direction, manually adding first maneuver
+%intended_state(9) = 1.0261; %first change is move forwards in x direction, manually adding first maneuver
 
+change_var = event_mat(1, 4); %the variable we're changing
+intended_state(change_var) = event_mat(1, 5);
+
+direction = (intended_state(change_var) - current_state(change_var))...
+    /abs(intended_state(change_var) - current_state(change_var));
+            
 state_check = [7 10 9 12 8 11 7 10 9 12 8 11 7 10]; %order of attitude checks you do, putting in vector to allow for easy changing
 %Fix the x, then the z, then the y.
 
