@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+#! /usr/bin/python3y- 
 
 import time
 import sys
@@ -53,7 +53,7 @@ print("Tare done! Add weight now...")
 
 while True:
     try:
-        # These three lines are usefull to debug wether to use MSB or LSB in the reading formats
+        # These three lines are useful to debug wether to use MSB or LSB in the reading formats
         # for the first parameter of "hx.set_reading_format("LSB", "MSB")".
         # Comment the two lines "val = hx.get_weight(5)" and "print val" and uncomment these three lines to see what it prints.
         
@@ -65,8 +65,8 @@ while True:
         val = hx.get_weight(5)
         # calibrated value = m*val + b
         # calibrate in Excel using linear curve fit with calibration weights
-        m = 5
-        b = 5
+        m = .0014
+        b = 2.4498
         val = m*val + b
         print(val)
 
