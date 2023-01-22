@@ -71,23 +71,25 @@ data = []
 start_time = time.time()
 while time.time() < timeEnd:
     data.append(printWeight(start_time))
-    
 
-        
-# GPIO.output(22, GPIO.HIGH)
-print("valve on")
-timeEnd = time.time() + 10 # seconds
-while time.time() < timeEnd:
-     data.append(printWeight(start_time))
+for i in range(10):
+    # GPIO.output(22, GPIO.HIGH)
+    print("valve on")
+    timeEnd = time.time() + .5 # seconds
+    while time.time() < timeEnd:
+         data.append(printWeight(start_time))
 
+    # GPIO.output(22, GPIO.LOW)
+    print("valve off")
+    timeEnd = time.time() + .5 # seconds
+    while time.time() < timeEnd:
+         data.append(printWeight(start_time))
 
-# GPIO.output(22, GPIO.LOW)
-print("valve off")
-timeEnd = time.time() + 5 # seconds
-while time.time() < timeEnd:
-     data.append(printWeight(start_time))
 
 print(data)
-write_csv('2022-01-18 10 sec #54 drilled out 10 Hz K-bottle 1',data)
+write_csv('test',data)
+#'date orificenozzletype_hertz_feedsystem'
+#write_csv('2022-01-17 1mmConical_10Hz_Tank .5 sec pulse',data)
+#'date orificenozzletype_hertz_feedsystem'
 # Write_csv('2022-12-07 Benchtop 10 sec 1mm conical.csv 3 of 3',data)
 cleanAndExit()

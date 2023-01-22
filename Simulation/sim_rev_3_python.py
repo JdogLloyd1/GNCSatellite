@@ -245,6 +245,8 @@ while end_con == 0:
     time_vec.append(time)
 
 y = t.time()    
+delta_t = (y-x)/len(time_vec)
+print(delta_t)
 plt.figure(1)
 #first figure is for angular positions
 
@@ -258,7 +260,7 @@ plt.subplot(325)
 plt.plot(time_vec, yaw_vec, label = 'Yaw')
 leg = plt.legend()
 
-#plt.figure(2)
+plt.figure(2)
 #second figure is for angular velocities
 
 plt.subplot(322)

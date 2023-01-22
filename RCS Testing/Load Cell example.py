@@ -65,8 +65,8 @@ while True:
         val = hx.get_weight(5)
         # calibrated value = m*val + b
         # calibrate in Excel using linear curve fit with calibration weights
-        m = .0014
-        b = 2.4498
+        m = -.0014
+        b = 0.4498
         val = m*val + b
         print(val)
 
