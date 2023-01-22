@@ -1,4 +1,5 @@
 import math
+import time as t
 import matplotlib.pyplot as plt
 from attitude_control_functions import *
 
@@ -51,11 +52,9 @@ thruster_mat = [0, 0] #track which thrusters turn on, might not need this
  
 
 ## Long while loop is the heart of the control algorithm for control logic, won't change    
-          
+x = t.time()          
 while end_con == 0:
 
-    if current_state[5] > 15*math.pi/180:
-        nt = 1
     
     if event_complete == 0: #case 1 of 4 is you're in the middle of a maneuver
     
@@ -244,7 +243,8 @@ while end_con == 0:
     wy_vec.append(current_state[4]*180/math.pi)
     wz_vec.append(current_state[5]*180/math.pi)
     time_vec.append(time)
-    
+
+y = t.time()    
 plt.figure(1)
 #first figure is for angular positions
 
