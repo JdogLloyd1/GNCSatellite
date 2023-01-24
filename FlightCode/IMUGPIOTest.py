@@ -6,11 +6,13 @@
 
 import time
 import sys
+import RPi.GPIO as GPIO
 import FaBo9Axis_MPU9250
 
 mpu9250 = FaBo9Axis_MPU9250.MPU9250()
 
 # Pin Setup
+GPIO.setmode(GPIO.BCM)
 # GPIO.setup()
 # SCL = GPIO3
 # SDA = GPIO2

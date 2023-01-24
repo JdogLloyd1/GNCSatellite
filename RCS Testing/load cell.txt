@@ -1,0 +1,6 @@
+HX711 repository: github.com/tatobari/hx711.py
+
+To calibrate: 
+Open Excel 
+Use calibration weights to measure output raw data 
+Use a linear y=mx+b curve fit to obtain m and b constants

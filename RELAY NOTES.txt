@@ -1,0 +1,2 @@
+GPIO.LOW means circuit is open. Relay LED turns on. No power to valve. 
+GPIO.HIGH means circuit is clsed. Relay LED turns off. Power to valve. 
