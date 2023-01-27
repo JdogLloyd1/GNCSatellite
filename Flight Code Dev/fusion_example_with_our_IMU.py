@@ -26,6 +26,12 @@ ahrs.settings = imufusion.Settings(0.5,  # gain
 delta_time = numpy.diff(timestamp, prepend=timestamp[0])
 
 euler = numpy.empty((len(timestamp), 3))
+#numpy.empty((len(timestamp), 3))
+euler_diff_x = []
+euler_diff_y = []
+euler_diff_z = []
+
+euler_diff_time = []#numpy.empty([1,1])
 internal_states = numpy.empty((len(timestamp), 6))
 flags = numpy.empty((len(timestamp), 5))
 
@@ -50,6 +56,14 @@ for index in range(len(timestamp)):
                                 ahrs_flags.acceleration_rejection_timeout,
                                 ahrs_flags.magnetic_rejection_warning,
                                 ahrs_flags.magnetic_rejection_timeout])
+    
+for index in range(len(timestamp)):
+    if timestamp[index] > 5:
+        euler_diff_x.append(euler[index,0]-euler[500,0]) #= numpy.append(euler_diff, [[euler[index][0] - euler[300][0], euler[index][1] - euler[300][1], euler[index][2] - euler[300][2]]], axis=0)
+        euler_diff_y.append(euler[index,1]-euler[500,1])
+        euler_diff_z.append(euler[index,2]-euler[500,2])
+        euler_diff_time.append(timestamp[index]-5)
+       #euler_diff_time = numpy.append(euler_diff_time, [[timestamp[index]-3]], axis=0)
 
 
 def plot_bool(axis, x, y, label):
@@ -60,50 +74,16 @@ def plot_bool(axis, x, y, label):
     axis.legend()
 
 
-# Plot Euler angles
-figure, axes = pyplot.subplots(nrows=12, sharex=True, gridspec_kw={"height_ratios": [6, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]})
+pyplot.figure(1)
+pyplot.plot(timestamp, euler[:, 0], "tab:red", label="Roll")
+pyplot.plot(timestamp, euler[:, 1], "tab:green", label="Pitch")
+pyplot.plot(timestamp, euler[:, 2], "tab:blue", label="Yaw")
+pyplot.legend()
 
-figure.suptitle("Euler angles, internal states, and flags")
+pyplot.figure(2)
+pyplot.plot(euler_diff_time, euler_diff_x, "tab:red", label="Roll diff from init")
+pyplot.plot(euler_diff_time, euler_diff_y, "tab:green", label="Pitch diff from init")
+pyplot.plot(euler_diff_time, euler_diff_z, "tab:blue", label="Yaw diff from init")
+pyplot.legend()
 
-axes[0].plot(timestamp, euler[:, 0], "tab:red", label="Roll")
-axes[0].plot(timestamp, euler[:, 1], "tab:green", label="Pitch")
-axes[0].plot(timestamp, euler[:, 2], "tab:blue", label="Yaw")
-axes[0].set_ylabel("Degrees")
-axes[0].grid()
-axes[0].legend()
-
-# Plot initialising flag
-plot_bool(axes[1], timestamp, flags[:, 0], "Initialising")
-
-# Plot acceleration rejection internal states and flags
-axes[2].plot(timestamp, internal_states[:, 0], "tab:olive", label="Acceleration error")
-axes[2].set_ylabel("Degrees")
-axes[2].grid()
-axes[2].legend()
-
-plot_bool(axes[3], timestamp, internal_states[:, 1], "Accelerometer ignored")
-
-axes[4].plot(timestamp, internal_states[:, 2], "tab:orange", label="Acceleration rejection timer")
-axes[4].grid()
-axes[4].legend()
-
-plot_bool(axes[5], timestamp, flags[:, 1], "Acceleration rejection warning")
-plot_bool(axes[6], timestamp, flags[:, 2], "Acceleration rejection timeout")
-
-# Plot magnetic rejection internal states and flags
-axes[7].plot(timestamp, internal_states[:, 3], "tab:olive", label="Magnetic error")
-axes[7].set_ylabel("Degrees")
-axes[7].grid()
-axes[7].legend()
-
-plot_bool(axes[8], timestamp, internal_states[:, 4], "Magnetometer ignored")
-
-axes[9].plot(timestamp, internal_states[:, 5], "tab:orange", label="Magnetic rejection timer")
-axes[9].grid()
-axes[9].legend()
-
-plot_bool(axes[10], timestamp, flags[:, 3], "Magnetic rejection warning")
-plot_bool(axes[11], timestamp, flags[:, 4], "Magnetic rejection timeout")
-
-if len(sys.argv) == 1:  # don't show plots when script run by CI
-    pyplot.show()
+pyplot.show()

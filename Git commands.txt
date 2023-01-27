@@ -11,8 +11,8 @@ gh issue create --title "asdf" --body "more details"
 
 git submodule add --url-- --Folder name--
 
-when Git throws empty object or loose object corrupt errors: 
 
+when Git throws empty object or loose object corrupt errors: 
 find .git/objects/ -size 0 -exec rm -f {} \;
 git fetch origin 
 
