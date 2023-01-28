@@ -7,3 +7,6 @@
 [submodule "Adafruit_BNO055"]
 	path = Adafruit_BNO055
 	url = https://github.com/adafruit/Adafruit_BNO055.git
+[submodule "Adafruit_CircuitPython_BNO055"]
+	path = Adafruit_CircuitPython_BNO055
+	url = https://github.com/adafruit/Adafruit_CircuitPython_BNO055.git
