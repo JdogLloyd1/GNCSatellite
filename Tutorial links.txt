@@ -1,0 +1,4 @@
+https://42bots.com/tutorials/access-raspberry-pi-terminal-and-desktop-remotely-with-ssh-and-vnc/
+https://42bots.com/tutorials/arduino-script-for-mpu-6050-auto-calibration/
+https://42bots.com/tutorials/arduino-uno-and-the-invensense-mpu-6050-6dof-imu/
+

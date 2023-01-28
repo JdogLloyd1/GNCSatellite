@@ -58,11 +58,11 @@ for index in range(len(timestamp)):
                                 ahrs_flags.magnetic_rejection_timeout])
     
 for index in range(len(timestamp)):
-    if timestamp[index] > 5:
-        euler_diff_x.append(euler[index,0]-euler[500,0]) #= numpy.append(euler_diff, [[euler[index][0] - euler[300][0], euler[index][1] - euler[300][1], euler[index][2] - euler[300][2]]], axis=0)
-        euler_diff_y.append(euler[index,1]-euler[500,1])
-        euler_diff_z.append(euler[index,2]-euler[500,2])
-        euler_diff_time.append(timestamp[index]-5)
+    if timestamp[index] > 3:
+        euler_diff_x.append(euler[index,0]-euler[300,0]) #= numpy.append(euler_diff, [[euler[index][0] - euler[300][0], euler[index][1] - euler[300][1], euler[index][2] - euler[300][2]]], axis=0)
+        euler_diff_y.append(euler[index,1]-euler[300,1])
+        euler_diff_z.append(euler[index,2]-euler[300,2])
+        euler_diff_time.append(timestamp[index]-3)
        #euler_diff_time = numpy.append(euler_diff_time, [[timestamp[index]-3]], axis=0)
 
 
