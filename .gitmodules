@@ -4,3 +4,6 @@
 [submodule "hx711py"]
 	path = hx711py
 	url = https://github.com/tatobari/hx711py.git
+[submodule "Adafruit_BNO055"]
+	path = Adafruit_BNO055
+	url = https://github.com/adafruit/Adafruit_BNO055.git
