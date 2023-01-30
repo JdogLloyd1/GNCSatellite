@@ -1,13 +1,13 @@
 import time
 import sys
 import RPi.GPIO as GPIO
-import FaBo9Axis_MPU9250
 import imufusion
 import matplotlib.pyplot as pyplot
 import numpy as np
 import csv
+from threading import Thread
 
-mpu9250 = FaBo9Axis_MPU9250.MPU9250()
+# Import IMU library
 
 # Pin Setup
 GPIO.setmode(GPIO.BCM)
@@ -22,7 +22,12 @@ def write_csv(filename,data):
         f = csv.writer(csvfile)
         for row in data:
             f.writerow(row)
+            
+def 
 
+def readIMU():
+    
+    return ? 
             
 timeEnd = time.time() + 10 # seconds
 start_time = time.time()
