@@ -1,12 +1,12 @@
 import time
 import sys
 import RPi.GPIO as GPIO
-import imufusion
+# import imufusion
 import matplotlib.pyplot as pyplot
 import numpy as np
-import csv
+# import csv
 from threading import Thread
-
+# Import continuous Threading? 
 # Import IMU library
 
 # Pin Setup
@@ -22,36 +22,42 @@ def write_csv(filename,data):
         f = csv.writer(csvfile)
         for row in data:
             f.writerow(row)
-            
-def 
 
 def readIMU():
+	
+    # start a while True loop
     
+    # Read quaternions
+    
+    # Process quaternions into Euler Angles
+    
+    # Append timestamp, angles to lists
+    
+    # Return lists? 
+    
+    # Use signal.pause() to wait for next data packet to come through? 
+
     return ? 
             
+THREAD_IMU = Thread(target=readIMU())
+THREAD_IMU.start()
+# Potentially use Thread.Timer() to start reading IMU after initalization/calibration
+
+#initialize lists
+timestamp = []
+EULER_Z = []
+EULER_Y = []
+EULER_X = []
+
 timeEnd = time.time() + 10 # seconds
 start_time = time.time()
 
-#initialize numpy arrays
-#timestamp = np.empty([1,1])
-#gyroscope = np.empty([1,3])
-#accelerometer = np.empty([1,3])
-#magnetometer = np.empty([1,3])
-data_lst = []
-
 while time.time() < timeEnd:
-	#print(time.time()-start_time)
-	accel_raw = mpu9250.readAccel()
-	gyro_raw = mpu9250.readGyro()
-	mag_raw = mpu9250.readMagnet()
-
-	data_vec = [time.time()-start_time, accel_raw['x'], accel_raw['y'], accel_raw['z'], gyro_raw['x'], \
-	gyro_raw['y'], gyro_raw['z'], mag_raw['x'], mag_raw['y'], mag_raw['z']]
-	now = time.time()
-	delta_t = time.time()-start_time
-	data_lst.append(data_vec) 
-	elapsed_time = time.time() - now
-	time.sleep(.01-elapsed_time) #want to run at 100 Hz
 
 
-write_csv('IMU sample data.csv',data_lst)
+    # 
+
+	# want to run at 100 Hz? Maybe slower based on data reading?
+
+
+ # write_csv('IMU sample data.csv',data_lst)
