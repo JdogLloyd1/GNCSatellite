@@ -1,7 +1,6 @@
 import random
 import math
 import time
-from valve_test_script import *
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
@@ -25,6 +24,16 @@ GPIO.setup(24, GPIO.OUT)
 GPIO.setup(25, GPIO.OUT)
 GPIO.setup(26, GPIO.OUT)
 
+# turn off all relays outside of the loop
+GPIO.output(4, GPIO.LOW)
+GPIO.output(5, GPIO.LOW)
+GPIO.output(6, GPIO.LOW)
+GPIO.output(22, GPIO.LOW)
+GPIO.output(23, GPIO.LOW)
+GPIO.output(24, GPIO.LOW)
+GPIO.output(25, GPIO.LOW)
+GPIO.output(26, GPIO.LOW)
+
 prev_valves = [0, 0]
 valve_dict = {1:4, 2:5, 3:6, 4:22, 5:23, 6:24, 7:25, 8:26}
 
@@ -40,7 +49,8 @@ for index in range(10):
                 GPIO.output(valve_dict[valve], GPIO.LOW)
             
         for valve in new_valves:
-            GPIO.output(valve_dict[valve], GPIO.HIGH)
+            if valve != 0:
+                GPIO.output(valve_dict[valve], GPIO.HIGH)
             
     prev_valves = [new_valves[0], new_valves[1]] #reset the loop
         
@@ -49,9 +59,9 @@ for index in range(10):
 
 # turn off all relays outside of the loop
 GPIO.output(4, GPIO.LOW)
-#GPIO.output(5, GPIO.LOW)
-#GPIO.output(6, GPIO.LOW)
-#GPIO.output(22, GPIO.LOW)
+GPIO.output(5, GPIO.LOW)
+GPIO.output(6, GPIO.LOW)
+GPIO.output(22, GPIO.LOW)
 GPIO.output(23, GPIO.LOW)
 GPIO.output(24, GPIO.LOW)
 GPIO.output(25, GPIO.LOW)
