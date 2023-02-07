@@ -22,7 +22,9 @@ def cleanAndExit():
     print("Bye!")
     sys.exit()
 
-hx = HX711(5, 6)
+# DT Pin - GPIO #27
+# SCK Pin - GPIO #12
+hx = HX711(27,12)
 
 # I've found out that, for some reason, the order of the bytes is not always the same between versions of python, numpy and the hx711 itself.
 # Still need to figure out why does it change.
@@ -45,6 +47,10 @@ hx.reset()
 
 hx.tare()
 
+# Calibration coefficients
+m = .001377
+b = 0
+
 print("Tare done! Add weight now...")
 
 # to use both channels, you'll need to tare them both
@@ -65,9 +71,8 @@ while True:
         val = hx.get_weight(5)
         # calibrated value = m*val + b
         # calibrate in Excel using linear curve fit with calibration weights
-        m = -.0014
-        b = 0.4498
-        val = m*val + b
+        val = (m*val + b)*9.8/1000
+
         print(val)
 
         # To get weight from both channels (if you have load cells hooked up 
