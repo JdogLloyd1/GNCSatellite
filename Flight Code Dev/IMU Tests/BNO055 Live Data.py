@@ -54,6 +54,37 @@ ys_wz = []
 	
 print("Quaternion: {}".format(sensor.quaternion))
 
+def matrix_mult(matrix1, matrix2):
+
+    m = len(matrix1) #number of rows in matrix 1
+    K = len(matrix2[0])
+    res = [[0 for x in range(K)] for y in range(m)]
+     
+    # explicit for loops
+    for i in range(len(matrix1)):
+        for j in range(len(matrix2[0])):
+            for k in range(len(matrix2)):
+     
+                # resulted matrix
+                res[i][j] += matrix1[i][k] * matrix2[k][j]
+     
+    return res
+    
+def make_omega_local(phi, theta, psi, omega):
+    #turns the IMU's angular velocity vector into local coordinates
+    #phi is roll, theta is pitch, psi is yaw, omega is gloabl angular velocity
+    
+    #general formula is to undo rotations: rotate -roll, then -pitch, then -yaw
+    rot_mat_x = [[1,0,0], [0, math.cos(-phi), -math.sin(-phi)], [0, math.sin(-phi), math.cos(-phi)]]
+    rot_mat_y = [[math.cos(-theta), 0, math.sin(-theta)], [0,1,0], [-math.sin(-theta), 0, math.cos(-theta)]]
+    rot_mat_z = [[math.cos(-psi), -math.sin(-psi), 0], [math.sin(-psi), math.cos(-psi), 0], [0, 0, 1]] 
+    rot_mat_xy = matrix_mult(rot_mat_x, rot_mat_y)
+    rot_mat_xyz = matrix_mult(rot_mat_xy, rot_mat_z)
+    omega_mat = matrix_mult(rot_mat_xyz, [[omega[0]], [omega[1]], [omega[2]]])
+    omega_local = [omega_mat[0][0], omega_mat[1][0], omega_mat[2][0]]
+    
+    return omega_local
+
 def animate_euler(i, xs, ys_roll, ys_pitch, ys_yaw): #function to plot euler angles in real time
 
 	#Read quaternion from IMU, translate to z-y-x euler angles
@@ -121,17 +152,13 @@ def animate_euler(i, xs, ys_roll, ys_pitch, ys_yaw): #function to plot euler ang
 	
 def animate_omega(i, xs, ys_wx, ys_wy, ys_wz): #function to plot angular velocities in real time
 
-	#Read quaternion from IMU, translate to z-y-x euler angles
+	#Need to read both angular position and velocity from IMU
 	
-	position = sensor.quaternion
-	ang_vel = sensor.gyro
+	omega_vec1 = sensor.gyro
 	
-
-	# Add x and y to lists
-	#xs.append(time.time())
-	ys_wx.append(ang_vel[0]*180/math.pi)
-	ys_wy.append(ang_vel[1]*180/math.pi)
-	ys_wz.append(ang_vel[2]*180/math.pi)
+	ys_wx.append(omega_vec1[0]*180/math.pi)
+	ys_wy.append(omega_vec1[1]*180/math.pi)
+	ys_wz.append(omega_vec1[2]*180/math.pi)
 
 	# Limit x and y lists to 20 items
 	xs = xs[-20:]
