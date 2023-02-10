@@ -30,6 +30,35 @@ def make_omega_local(phi, theta, psi, omega):
     omega_local = [omega_mat[0][0], omega_mat[1][0], omega_mat[2][0]]
     
     return omega_local
+    
+def convert_quaternion(position):
+
+    q0 = position[0]
+    q1 = position[1]
+    q2 = position[2]
+    q3 = position[3]
+
+    phi = math.atan2(2*(q0*q1+q2*q3), 1-2*(q1**2 + q2**2)) #roll rotation
+
+    #Have two options for pitch, use whichever works numerically
+    inside_fun = 2*(q0*q2 - q1*q3)
+    if inside_fun > 1:
+        inside_fun = 1
+    elif inside_fun < -1:
+        inside_fun = -1
+        
+    #if abs(inside_fun) < 1:
+    theta = math.asin(inside_fun)
+    #else:
+     #   print(position)
+      #  theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*(q0*q2-q1*q3))) #pitch rotation
+        
+    psi = math.atan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2)) #yaw rotation
+
+    euler_angles = [phi, theta, psi]
+    print(theta)
+    return euler_angles
+
 
 def maneuver_control(current_state, intended_state, col, calc_accl, vel_tar):
     #col already has 1 subtracted so it's in 0 indexing. Will always be 0-2 for position

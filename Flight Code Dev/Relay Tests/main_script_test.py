@@ -55,7 +55,7 @@ for index in range(10):
     prev_valves = [new_valves[0], new_valves[1]] #reset the loop
         
     print(new_valves)
-    time.sleep(1)
+    time.sleep(3)
 
 # turn off all relays outside of the loop
 GPIO.output(4, GPIO.LOW)

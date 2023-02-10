@@ -20,7 +20,6 @@ from matplotlib import style
 import datetime as dt
 
 
-
 start_time = time.time()
 
 style.use('fivethirtyeight')
@@ -104,9 +103,10 @@ def animate_euler(i, xs, ys_roll, ys_pitch, ys_yaw): #function to plot euler ang
 	if abs(inside_fun) < 1:
 		theta = math.asin(2*(q0*q2 - q1*q3))
 	else:
-		theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*q0*q2-q1*q3)) #pitch rotation
+		theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*(q0*q2-q1*q3))) #pitch rotation
 	psi = math.atan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2)) #yaw rotation
 
+	#new_pos = sensor.euler
 	# Add x and y to lists
 	xs.append(time.time())
 	ys_roll.append(phi*180/math.pi)
