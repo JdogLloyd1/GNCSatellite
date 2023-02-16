@@ -57,8 +57,8 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
     
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.25,.1,3,45*math.pi/180,5*math.pi/180], [0,.25,.1,2,45*math.pi/180,5*math.pi/180],\
-[0,.25,.1,2,10*math.pi/180,5*math.pi/180], [0,.25,.1,3,90*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
+event_mat =  [[0,.25,.1,3,45*math.pi/180,5*math.pi/180]]#, [0,.25,.1,2,45*math.pi/180,5*math.pi/180],\
+#[0,.25,.1,2,10*math.pi/180,5*math.pi/180], [0,.25,.1,3,90*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
 
@@ -261,18 +261,25 @@ try:
         #numerical integration stuff
         if torque[0] > 0: #positive roll
             thruster_pair = [2, 4] #1y, 2y
+            print('+ roll')
         elif torque[0] < 0: #negative roll
             thruster_pair = [6, 8] #3y, 4y
+            print('- roll')
         elif torque[1] > 0: #positive pitch
             thruster_pair = [1, 7] #1x, 4x
+            print('+ pitch')
         elif torque[1] < 0: #negative pitch
             thruster_pair = [3, 5] #2x, 3x
+            print('- pitch')
         elif torque[2] > 0: #positive yaw
             thruster_pair = [3, 7] #2x, 4x
+            print('+ yaw')
         elif torque[2] < 0: #negative yaw
             thruster_pair = [1, 5] #1x, 3x
+            print('- yaw')
         else: #no thrust
             thruster_pair = [0, 0]
+            print('hold')
         
         if event_complete == 1 and current_event == len(event_mat) - 1:
             end_con == 1 #if you're on the last event and completed it, you're done
