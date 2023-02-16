@@ -22,9 +22,9 @@ def cleanAndExit():
     print("Bye!")
     sys.exit()
 
-# DT Pin - GPIO #27
-# SCK Pin - GPIO #12
-hx = HX711(27,12)
+# DT Pin - GPIO #2
+# SCK Pin - GPIO #3
+hx = HX711(2,3)
 
 # I've found out that, for some reason, the order of the bytes is not always the same between versions of python, numpy and the hx711 itself.
 # Still need to figure out why does it change.
@@ -48,7 +48,7 @@ hx.reset()
 hx.tare()
 
 # Calibration coefficients
-m = .001377
+m = 1 #.001377
 b = 0
 
 print("Tare done! Add weight now...")

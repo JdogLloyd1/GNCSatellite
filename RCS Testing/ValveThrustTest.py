@@ -10,8 +10,8 @@ b = 0 # calibration
 # Pin #15 of HX711 is "Rate" Output data rate control. 
 # 10 Hz set to 0. 80 Hz set to 1
 
-# DT Pin - GPIO #27
-# SCK Pin - GPIO #12
+# DT Pin - GPIO #2
+# SCK Pin - GPIO #3
 
 def cleanAndExit():
     print("Cleaning...")
@@ -44,7 +44,7 @@ def write_csv(filename,data):
         for row in data:
             f.writerow(row)
 
-hx = HX711(27,12)
+hx = HX711(2,3)
 hx.set_reading_format("MSB", "MSB")
 hx.RATE = 1
 
@@ -89,6 +89,5 @@ while time.time() < timeEnd:
      data.append(printWeight(start_time))
 
 print(data)
-write_csv('2023-02-03 10 sec #54 drilled out 10 Hz K-bottle 1',data)
-# Write_csv('2022-12-07 Benchtop 10 sec 1mm conical.csv 3 of 3',data)
+write_csv('troubleshooting',data)
 cleanAndExit()
