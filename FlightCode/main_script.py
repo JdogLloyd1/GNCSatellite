@@ -57,8 +57,8 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
     
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.25,.1,3,45*math.pi/180,5*math.pi/180]]#, [0,.25,.1,2,45*math.pi/180,5*math.pi/180],\
-#[0,.25,.1,2,10*math.pi/180,5*math.pi/180], [0,.25,.1,3,90*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
+event_mat =  [[0,.25,.1,3,45*math.pi/180,5*math.pi/180], [0,.25,.1,2,45*math.pi/180,5*math.pi/180],\
+[0,.25,.1,2,5*math.pi/180,5*math.pi/180], [0,.25,.1,3,90*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
 
