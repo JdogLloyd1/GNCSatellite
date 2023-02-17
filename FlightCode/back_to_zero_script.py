@@ -44,7 +44,7 @@ def sensorCalibration():
     time.sleep(2)
 
 ## Next few lines are stuff for setup that will stay the same
-time_step = 1 # 1/frequency, in seconds
+time_step = 2 # 1/frequency, in seconds
 
 end_con = 0 #binary variable that becomes 1 when final event is complete
 current_event = 0  #add 1 for every new maneuver, starts at 0 bc that's the first index
@@ -128,7 +128,11 @@ try:
         position = sensor.quaternion
         euler_angles = convert_quaternion(position)
         ang_vel = sensor.gyro
-
+        
+        print("roll is" + str(phi*180/math.pi))
+        print("pitch is" + str(theta*180/math.pi))
+        print("yaw is" + str(psi*180/math.pi))
+        
         current_state = [euler_angles[0], euler_angles[1], euler_angles[2], ang_vel[0], ang_vel[1], ang_vel[2]]
             
         #case 3 of 4 is you've finished the event and slowed down but NOT all attitudes are fixed
@@ -180,25 +184,25 @@ try:
         #numerical integration stuff
         if torque[0] > 0: #positive roll
             thruster_pair = [2, 4] #1y, 2y
-            print('+ roll')
+            print('MANEUVER IS + ROLL')
         elif torque[0] < 0: #negative roll
             thruster_pair = [6, 8] #3y, 4y
-            print('- roll')
+            print('MANEUVER IS - ROLL')
         elif torque[1] > 0: #positive pitch
             thruster_pair = [1, 7] #1x, 4x
-            print('+ pitch')
+            print('MANEUVER IS + PTICH')
         elif torque[1] < 0: #negative pitch
             thruster_pair = [3, 5] #2x, 3x
-            print('- pitch')
+            print('MANEUVER IS - PITCH')
         elif torque[2] > 0: #positive yaw
             thruster_pair = [3, 7] #2x, 4x
-            print('+ yaw')
+            print('MANEUVER IS + YAW')
         elif torque[2] < 0: #negative yaw
             thruster_pair = [1, 5] #1x, 3x
-            print('- yaw')
+            print('MANEUVER IS - YAW')
         else: #no thrust
             thruster_pair = [0, 0]
-            print('hold')
+            print('HOLD')
         
         
         elapsed_time = time.time() - loop_start_time
