@@ -123,6 +123,7 @@ wz_vec = []
 ## Long while loop is the heart of the control algorithm for control logic, won't change    
 try:
     while end_con == 0:
+        print("\n")
         #print([current_state[0]*180/math.pi, current_state[1]*180/math.pi, current_state[2]*180/math.pi])
         #print([intended_state[0]*180/math.pi, intended_state[1]*180/math.pi, intended_state[2]*180/math.pi])
         
