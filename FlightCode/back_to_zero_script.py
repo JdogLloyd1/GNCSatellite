@@ -122,6 +122,7 @@ wz_vec = []
 ## Long while loop is the heart of the control algorithm for control logic, won't change    
 try:
     while num_attitude_checks < len(state_check):
+        print("\n")
         
         loop_start_time = time.time()
         position = sensor.quaternion
@@ -135,8 +136,8 @@ try:
         
         torque = [0, 0, 0] #default values
         
-        theta_tol = .2*math.pi/180  #tolerance for position, number is in degrees
-        omega_tol = .1*math.pi/180
+        theta_tol = 5*math.pi/180  #tolerance for position, number is in degrees
+        omega_tol = 2*math.pi/180
 
         if num_attitude_checks < 10:
             omega_tar = 10*math.pi/180 #target rotational velocity during attitude position fixes
@@ -179,18 +180,25 @@ try:
         #numerical integration stuff
         if torque[0] > 0: #positive roll
             thruster_pair = [2, 4] #1y, 2y
+            print('+ roll')
         elif torque[0] < 0: #negative roll
             thruster_pair = [6, 8] #3y, 4y
+            print('- roll')
         elif torque[1] > 0: #positive pitch
             thruster_pair = [1, 7] #1x, 4x
+            print('+ pitch')
         elif torque[1] < 0: #negative pitch
             thruster_pair = [3, 5] #2x, 3x
+            print('- pitch')
         elif torque[2] > 0: #positive yaw
             thruster_pair = [3, 7] #2x, 4x
+            print('+ yaw')
         elif torque[2] < 0: #negative yaw
             thruster_pair = [1, 5] #1x, 3x
+            print('- yaw')
         else: #no thrust
             thruster_pair = [0, 0]
+            print('hold')
         
         
         elapsed_time = time.time() - loop_start_time
