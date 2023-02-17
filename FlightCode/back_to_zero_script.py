@@ -129,9 +129,9 @@ try:
         euler_angles = convert_quaternion(position)
         ang_vel = sensor.gyro
         
-        print("roll is" + str(phi*180/math.pi))
-        print("pitch is" + str(theta*180/math.pi))
-        print("yaw is" + str(psi*180/math.pi))
+        print("roll is" + str(euler_angles[0]*180/math.pi))
+        print("pitch is" + str(euler_angles[1]*180/math.pi))
+        print("yaw is" + str(euler_angles[2]*180/math.pi))
         
         current_state = [euler_angles[0], euler_angles[1], euler_angles[2], ang_vel[0], ang_vel[1], ang_vel[2]]
             
