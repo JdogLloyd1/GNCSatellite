@@ -57,8 +57,10 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
     
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.25,.1,3,45*math.pi/180,5*math.pi/180], [0,.25,.1,2,45*math.pi/180,5*math.pi/180],\
-[0,.25,.1,2,0, 5*math.pi/180], [0,.25,.1,3,60*math.pi/180,5*math.pi/180], [0,.25,.1,1,30*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
+
+event_mat =  [[0,.25,.1,3, math.pi/4,.01], [0,.25,.1,2,math.pi/4,.05],\
+              [0,10,.1,2,0,.05], [0,.25,.1,3,math.pi/2,.05] ]
+#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
 
@@ -179,7 +181,8 @@ try:
                 num_attitude_checks = 1 #slowed down enough, move onto first attitude check
             print("slowing down")
             
-        elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0:
+        elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0\
+            and current_event != 1:
             #case 3 of 4 is you've finished the event and slowed down but NOT all attitudes are fixed
             
             torque = [0, 0, 0] #default values
@@ -237,6 +240,22 @@ try:
                     
                     direction = (intended_state[change_var] - current_state[change_var])\
                         /abs(intended_state[change_var] - current_state[change_var])
+                        
+                else:
+                #if conditions are based on time and you've got more than .1 seconds left
+                #perform a hold maneuver. This will look like an angular velocity auto correct
+                # in pitch if it's outside of tolerance. .1 is just a hard coding way to specify
+                #it's after the first pitch maneuver, will make sure all other wait times are below that
+            
+                    if time - event_ending_time[len(event_ending_time) - 1] > .25:
+
+                        omega_tol = .5*math.pi/180 #play around with this
+                        
+                        #only care about pitch velocity
+                        if abs(current_state[4] - intended_state[4]) > omega_tol:
+                           #Attitude is outside of tolerance, fix it
+                           current_col = 4 #fix pitch velocity
+                           torque = attitude_control(current_state, intended_state, current_col, omega_tar) 
                         
             else: #conditions for next event aren't based on time
                 

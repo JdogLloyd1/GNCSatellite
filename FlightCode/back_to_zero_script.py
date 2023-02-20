@@ -121,7 +121,7 @@ wz_vec = []
 
 ## Long while loop is the heart of the control algorithm for control logic, won't change    
 try:
-    while num_attitude_checks < len(state_check):
+    while num_attitude_checks < len(state_check)+1:
         print("\n")
         
         loop_start_time = time.time()
@@ -147,6 +147,7 @@ try:
             omega_tar = 10*math.pi/180 #target rotational velocity during attitude position fixes
         else:
             omega_tar = 2*math.pi/180
+            
         current_col = state_check[num_attitude_checks - 1]  
         
         if current_col < 3: #fixing an attitude position
