@@ -6,6 +6,7 @@ from attitude_control_functions import *
 ## Next few lines are stuff for setup that gets completely
 # overwritten when we move away from the sim
 
+thruster_on_time = 0
 m_sc = 3.4958
 current_state = [0]*6 #replace with IMU data
 state_mat = [] #for plotting, but IMU algorithm might need to track this so
@@ -28,11 +29,12 @@ event_complete = 0 #binary variable that = 0 when in maneuver and 1 when
 #in between maneuvers
 event_ending_time = [] #add time where each event ends
 
-    
 I_inv = [[3.5931, -0.0213, -0.0267], [-0.0228, 3.4306, -0.0255], [-0.0267, -0.0255, 2.1295]]
+    
 #build the event matrix - format in documentation. Variables you're changing are 1-6, 
 #first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.25,.1,3, math.pi/4,.01], [0,.25,.1,2,math.pi/4,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,math.pi/2,.05] ]
+event_mat =  [[0,.25,.1,3, math.pi/4,.01], [0,2,.1,2,math.pi/4,.05],\
+              [0,10,.1,2,0,.05], [0,.25,.1,3,math.pi/2,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
 
@@ -43,19 +45,21 @@ intended_state[change_var] = event_mat[0][4]
 direction = (intended_state[change_var] - current_state[change_var])\
     /abs(intended_state[change_var] - current_state[change_var])
             
-state_check = [0, 3, 1, 4]#, 0, 3, 2, 5, 1, 4] 
+state_check = [0, 3, 2, 5, 1, 4]#, 0, 3, 2, 5, 1, 4] 
 #order of attitude checks you do, putting in vector to allow for easy changing
 #Fix the x, then the z, then the y.0 is x position, 3 is x velocity
 
 thruster_mat = [0, 0] #track which thrusters turn on, might not need this         
-
-thruster_on_time = 0
+ 
 
 ## Long while loop is the heart of the control algorithm for control logic, won't change    
 x = t.time()          
 while end_con == 0:
 
-    
+    if current_event == 2 and num_attitude_checks == 6:
+        nt = 1
+        
+        
     if event_complete == 0: #case 1 of 4 is you're in the middle of a maneuver
     
         change_var = event_mat[current_event][3] - 1 #the variable we're changing, -1 is so indeces are right
@@ -81,7 +85,7 @@ while end_con == 0:
         else: #maneuver not complete, continue calling control function
         
             vel_tar = 7.5*math.pi/180 #target angular speed is 15 deg/s
-            calc_accl = .16*.175*I_inv [change_var][change_var] 
+            calc_accl = .16*.175*I_inv[change_var][change_var] 
             #use MOI to estimate time to slow down, ignore POI for this
             torque = maneuver_control(current_state, intended_state, change_var, calc_accl, vel_tar)
             
@@ -99,14 +103,15 @@ while end_con == 0:
         else:
             num_attitude_checks = 1 #slowed down enough, move onto first attitude check
     
-    elif event_complete == 1 and num_attitude_checks < len(state_check) + 1 and num_attitude_checks > 0:
+    elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0\
+        and current_event != 1:
         #case 3 of 4 is you've finished the event and slowed down but NOT all attitudes are fixed
         
         torque = [0, 0, 0] #default values
         
         theta_tol = .2*math.pi/180  #tolerance for position, number is in degrees
         omega_tol = .1*math.pi/180
-        omega_tar = 2*math.pi/180 #target rotational velocity during attitude fixes
+        omega_tar = 8*math.pi/180 #target rotational velocity during attitude fixes
         
         current_col = state_check[num_attitude_checks - 1]  
         
@@ -143,7 +148,7 @@ while end_con == 0:
         next_event_var = event_mat[current_event + 1][0] #variable to check if the next event has started
         
         if next_event_var == 0: #next event based on time
-            if time - event_ending_time[len(event_ending_time) - 1] > event_mat[current_event][2]:
+            if time - event_ending_time[len(event_ending_time) - 1] > event_mat[current_event+1][1]:
                 #If enough time has past since next event, set it up for next event
                 #Note that I'll have to change time to the actual time
                 
@@ -158,6 +163,27 @@ while end_con == 0:
                     /abs(intended_state[change_var] - current_state[change_var])
                     
                 print(time)
+                
+            else:
+            #if conditions are based on time and you've got more than .1 seconds left
+            #perform a hold maneuver. This will look like an angular velocity auto correct
+            # in pitch if it's outside of tolerance. .1 is just a hard coding way to specify
+            #it's after the first pitch maneuver, will make sure all other wait times are below that
+        
+                elapsed_time = time - event_ending_time[len(event_ending_time) - 1] #time since last event ended
+                wait_time = event_mat[current_event+1][1]
+                if wait_time - elapsed_time > .25: #have more than a quarter second to go
+                    omega_tol = .5*math.pi/180 #play around with this
+                    
+                    #only care about pitch velocity
+                    if abs(current_state[4] - intended_state[4]) > omega_tol:
+                       #Attitude is outside of tolerance, fix it
+                       current_col = 4 #wanna only change pitch velocity
+                       torque = attitude_control(current_state, intended_state, current_col, omega_tar) 
+                    
+                    
+                    
+                
         else: #conditions for next event aren't based on time
             
             if abs(current_state[next_event_var - 1] - event_mat[current_event+1][1]) < event_mat[current_event][2] :
@@ -176,6 +202,7 @@ while end_con == 0:
                 direction = (intended_state[change_var] - current_state[change_var])\
                     /abs(intended_state[change_var] - current_state[change_var])
                     
+            
     ## End of event logic. Lines of code below won't change
     
     #figure out which thrusters to turn on based on torque -doesn't change
@@ -223,6 +250,8 @@ while end_con == 0:
     rot_mat_yx = matrix_mult(rot_mat_y, rot_mat_x)
     
     #numerical integration of acceleration to velocity
+    actual_torque[1] = actual_torque[1] - .001*m_sc*9.81*math.sin(beta) #mass is a mm off
+    #acts as a restoring force. Not sure if realistic to say equilibrium is pitch = 0
     
     ang_accl = matrix_mult([actual_torque], I_inv) #have to make the torque vector a matrix
     current_state[3] += dt*ang_accl[0][0]
@@ -254,6 +283,7 @@ while end_con == 0:
     wz_vec.append(current_state[5]*180/math.pi)
     time_vec.append(time)
     
+
 plt.figure(1)
 #first figure is for angular positions
 
@@ -280,5 +310,4 @@ plt.subplot(326)
 plt.plot(time_vec, wz_vec, label = 'Omega z')
 leg = plt.legend()
 
-    
 print("thruster on time is " + str(thruster_on_time) + " seconds")
