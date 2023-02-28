@@ -37,25 +37,52 @@ GPIO.output(26, GPIO.LOW)
 prev_valves = [0, 0]
 valve_dict = {1:4, 2:5, 3:6, 4:22, 5:23, 6:24, 7:25, 8:26}
 
-for index in range(10):
-    num = math.ceil(8*random.random())
-    num2 = math.ceil(8*random.random()) 
-    new_valves = [num, num2]
+for index in range(6):
+    num = index + 1
+
+    if num == 1:
+        print("\m")
+        print("+ roll")
+        valves = [2, 4]
+
+    if num == 2:
+        print("\n")
+        print("- roll")
+        valves = [6,8]
     
-    if new_valves != prev_valves: #only turn on/off valves if it's different from the last timestep\
-        
-        for valve in prev_valves:
-            if valve != 0:
-                GPIO.output(valve_dict[valve], GPIO.LOW)
-            
-        for valve in new_valves:
-            if valve != 0:
-                GPIO.output(valve_dict[valve], GPIO.HIGH)
-            
-    prev_valves = [new_valves[0], new_valves[1]] #reset the loop
-        
-    print(new_valves)
-    time.sleep(3)
+    if num == 3:
+        print("\n")
+        print("+ pitch")
+        valves = [2, 8]
+
+    if num == 4:
+        print("\n")
+        print("- pitch")
+        valves = [4, 6]
+
+    if num == 5:
+        print("\n")
+        print("+ yaw")
+        valves = [3, 7]
+
+    if num == 6:
+        print("\n")
+        print("- yaw")
+        valves = [1, 5]
+     
+    time.sleep(5)
+
+    for valve in valves:
+        if valve != 0:
+            GPIO.output(valve_dict[valve], GPIO.HIGH)
+    print("valve on")
+    time.sleep(2)
+
+    for valve in valves:
+        if valve != 0:
+            GPIO.output(valve_dict[valve], GPIO.LOW)
+    print("valve off")   
+    time.sleep(5)
 
 # turn off all relays outside of the loop
 GPIO.output(4, GPIO.LOW)

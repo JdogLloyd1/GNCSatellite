@@ -246,8 +246,10 @@ try:
                 #perform a hold maneuver. This will look like an angular velocity auto correct
                 # in pitch if it's outside of tolerance. .1 is just a hard coding way to specify
                 #it's after the first pitch maneuver, will make sure all other wait times are below that
-            
-                    if time.time() - event_ending_time[len(event_ending_time) - 1] > .25:
+                     
+                    elapsed_time = time - event_ending_time[len(event_ending_time)-1]
+                    wait_time = event_mat[current_event+1][1]
+                    if wait_time - elapsed_time > .25:
                         print("waiting for next event")
                         omega_tol = .5*math.pi/180 #play around with this
                         

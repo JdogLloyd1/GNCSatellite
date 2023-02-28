@@ -48,7 +48,7 @@ hx.reset()
 hx.tare()
 
 # Calibration coefficients
-m = 1 #.001377
+m = .1377
 b = 0
 
 print("Tare done! Add weight now...")

@@ -89,5 +89,5 @@ while time.time() < timeEnd:
      data.append(printWeight(start_time))
 
 print(data)
-write_csv('troubleshooting',data)
+write_csv('2023-02-23 1 Thruster DR Tank',data)
 cleanAndExit()
