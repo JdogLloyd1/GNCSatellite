@@ -56,7 +56,7 @@ def convert_quaternion(position):
     psi = math.atan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2)) #yaw rotation
 
     euler_angles = [phi, theta, psi]
-    print(theta)
+    #print(theta)
     return euler_angles
 
 
