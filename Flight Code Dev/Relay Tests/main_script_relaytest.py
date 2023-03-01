@@ -70,19 +70,19 @@ for index in range(6):
         print("- yaw")
         valves = [1, 5]
      
-    time.sleep(5)
+    time.sleep(10)
 
     for valve in valves:
         if valve != 0:
             GPIO.output(valve_dict[valve], GPIO.HIGH)
     print("valve on")
-    time.sleep(2)
+    time.sleep(.25)
 
     for valve in valves:
         if valve != 0:
             GPIO.output(valve_dict[valve], GPIO.LOW)
     print("valve off")   
-    time.sleep(5)
+    time.sleep(3)
 
 # turn off all relays outside of the loop
 GPIO.output(4, GPIO.LOW)

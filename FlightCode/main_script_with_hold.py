@@ -32,16 +32,22 @@ def cleanAndExit():
 
     GPIO.cleanup()
 
+
 def sensorCalibration():
-    while sensor.calibrated == False:
+    cal_non_accl = False
+    while sensor.calibrated == False and cal_non_accl == False:
 
         print("Sys/Gyro/Acc/Mag")
         print(sensor.calibration_status)
         print(sensor.calibrated)
         print("")
-    
-    print("Calibration complete. Proceeding...")
-    time.sleep(2)
+        time.sleep(.5)
+        if sensor.calibration_status[0] == 3 and sensor.calibration_status[1] == 3 and sensor.calibration_status[3] == 3:
+            cal_non_accl = True
+
+sensorCalibration()
+time.sleep(5)
+
 
 ## Next few lines are stuff for setup that will stay the same
 time_step = 1 # 1/frequency, in seconds
@@ -58,8 +64,8 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
 
-event_mat =  [[0,.25,.1,3, math.pi/6,5*math.pi/180], [0,.25,.1,2,-math.pi/4,5*math.pi/180],\
-              [0,10,.1,2,0,5*math.pi/180], [0,.25,.1,3,math.pi/4,5*math.pi/180]]
+event_mat =  [[0,.25,.1,3, math.pi/6,10*math.pi/180], [0,.25,.1,2,-math.pi/6,5*math.pi/180],\
+              [0,10,.1,2,0,5*math.pi/180], [0,.25,.1,3,50*math.pi/180,10*math.pi/180]]
 #[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
@@ -79,7 +85,7 @@ intended_state[change_var] = event_mat[0][4]
 direction = (intended_state[change_var] - current_state[change_var])\
     /abs(intended_state[change_var] - current_state[change_var])
             
-state_check = [0, 3, 1, 4] #,0, 3, 2, 5, 1, 4] 
+state_check = [0, 3, 2,5, 1, 4] #,0, 3, 2, 5, 1, 4] 
 # Order of attitude checks you do, putting in vector to allow for easy changing
 # Fix the x, then the z, then the y.0 is x position, 3 is x velocity
 
@@ -172,7 +178,7 @@ try:
             
             vel_dif = current_state[change_var+3] - intended_state[change_var+3] 
             #difference between current and intended velocity
-            vel_tol = 5*math.pi/180 #.02 #tolerance in rad/s
+            vel_tol = 1*math.pi/180 #.02 #tolerance in rad/s
             torque = [0, 0, 0]
             
             if abs(vel_dif) > vel_tol:
@@ -187,14 +193,16 @@ try:
             
             torque = [0, 0, 0] #default values
             
-            theta_tol = 5*math.pi/180#.2*math.pi/180  #tolerance for position, number is in degrees
+            tol_dict = {0:3*math.pi/180, 1:5*math.pi/180, 2:10*math.pi/180}
             omega_tol = 1*math.pi/180 #.1*math.pi/180
             omega_tar = 2*math.pi/180 #target rotational velocity during attitude fixes
             
             current_col = state_check[num_attitude_checks - 1]  
-            
+            change_var = current_col
+
             if current_col < 3: #fixing an attitude position
-                
+                theta_tol = tol_dict[current_col]
+
                 if abs(current_state[current_col] - intended_state[current_col]) > theta_tol:
                     #Attitude is outside of tolerance, fix it
                     
@@ -276,7 +284,18 @@ try:
                     
                     direction = (intended_state[change_var] - current_state[change_var])\
                         /abs(intended_state[change_var] - current_state[change_var])
-                        
+        
+
+ 
+        if change_var == 0:
+            print("Current roll is " + str(current_state[change_var]*180/math.pi) + " degrees, intended roll is " + str(intended_state[change_var]*180/math.pi))
+        
+        if change_var == 1:
+            print("Current pitch is " + str(current_state[change_var]*180/math.pi) + " degrees, intended pitch is " + str(intended_state[change_var]*180/math.pi))
+   
+        if change_var == 2:
+            print("Current yaw is " + str(current_state[change_var]*180/math.pi) + " degrees, intended yaw is " + str(intended_state[change_var]*180/math.pi))
+
         ## End of event logic. Lines of code below won't change
         
         #figure out which thrusters to turn on based on torque -doesn't change
