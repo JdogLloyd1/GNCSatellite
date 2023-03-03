@@ -66,7 +66,7 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
     
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.25,.1,1,10*math.pi/180,5*math.pi/180], [0,.25,.1,1,0,5*math.pi/180],[0,.25,.1,3,15*math.pi/180,5*math.pi/180]]#, [0,.25,.1,2,-20*math.pi/180,5*math.pi/180],\
+event_mat =  [[0,.2,.1,3,0*math.pi/180,10*math.pi/180], [0,.2,.1,2,-20*math.pi/180,5*math.pi/180], [0,5,.1,2,0,5*math.pi/180], [0,.2,.1,3,-30*math.pi/180,5*math.pi/180], [0,.2,.1,1,20*math.pi/180,5*math.pi]]
 #[0,.25,.1,2,0, 5*math.pi/180], [0,.25,.1,3,45*math.pi/180,10*math.pi/180]] #[0,.`25,.1,1,30*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
@@ -94,7 +94,7 @@ intended_state[change_var] = event_mat[0][4]
 direction = (intended_state[change_var] - current_state[change_var])\
     /abs(intended_state[change_var] - current_state[change_var])
             
-state_check = [0, 3, 1, 4] #,0, 3, 2, 5, 1, 4] 
+state_check = [0, 3, 5, 1, 4] #,0, 3, 2, 5, 1, 4] 
 
 change_tol = 15*math.pi/180 #
 
@@ -208,8 +208,8 @@ try:
                 num_attitude_checks = 1 #slowed down enough, move onto first attitude check
                 print("commencing attitude checks")
            # print("slowing down")
-            
-        elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0:
+             
+        elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0 and current_event!= 1:
             #case 3 of 4 is you've finished the event and slowed down but NOT all attitudes are fixed
             
             torque = [0, 0, 0] #default values
@@ -268,7 +268,19 @@ try:
                     
                     direction = (intended_state[change_var] - current_state[change_var])\
                         /abs(intended_state[change_var] - current_state[change_var])
-                    print("starting maneuver" + str(current_event+1))    
+                    print("starting maneuver" + str(current_event+1))  
+
+                else:
+                    elapsed_time = time.time() - event_ending_time[len(event_ending_time)-1]
+                    wait_time = event_mat[current_event+1][1]
+                    if wait_time - elapsed_time > .25:
+                        omega_tol = math.pi/180 #tolero ance is 1 deg/s
+
+                        if abs(current_state[4] - intended_state[4]) > omega_tol:
+                            omega_tar = 2*math.pi/180
+                            current_col = 4
+                            torque = attitude_control(current_state, intended_state, current_col, omega_tar)
+
             else: #conditions for next event aren't based on time
                 
                 if abs(current_state[next_event_var - 1] - event_mat[current_event+1][1]) < event_mat[current_event][2] :
