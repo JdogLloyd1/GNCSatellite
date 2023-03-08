@@ -46,7 +46,7 @@ def sensorCalibration():
             cal_non_accl = True
 
     print("Calibration complete. Proceeding...")
-    time.sleep(8)
+    time.sleep(3)
 
 sensorCalibration()
 
@@ -66,7 +66,9 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
     
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.2,.1,3,0*math.pi/180,10*math.pi/180], [0,.2,.1,2,-20*math.pi/180,5*math.pi/180], [0,5,.1,2,0,5*math.pi/180], [0,.2,.1,3,-30*math.pi/180,5*math.pi/180], [0,.2,.1,1,20*math.pi/180,5*math.pi]]
+event_mat =  [[0,.2,.1,3,0*math.pi/180,10*math.pi/180], [0,.2,.1,2,-20*math.pi/180,5*math.pi/180], \
+              [0,5,.1,2,0,5*math.pi/180], [0,.2,.1,3,-30*math.pi/180,5*math.pi/180], \
+                  [0,.2,.1,1,20*math.pi/180,5*math.pi]]
 #[0,.25,.1,2,0, 5*math.pi/180], [0,.25,.1,3,45*math.pi/180,10*math.pi/180]] #[0,.`25,.1,1,30*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
@@ -94,7 +96,7 @@ intended_state[change_var] = event_mat[0][4]
 direction = (intended_state[change_var] - current_state[change_var])\
     /abs(intended_state[change_var] - current_state[change_var])
             
-state_check = [0, 3, 5, 1, 4] #,0, 3, 2, 5, 1, 4] 
+
 
 change_tol = 15*math.pi/180 #
 
@@ -149,6 +151,14 @@ try:
         #print([current_state[0]*180/math.pi, current_state[1]*180/math.pi, current_state[2]*180/math.pi])
         #print([intended_state[0]*180/math.pi, intended_state[1]*180/math.pi, intended_state[2]*180/math.pi])
         
+        #have to get state check at beginning of each loop bc it's used to see where we are
+        if current_event == 1:
+            state_check = [3, 5] 
+            #state_check = [0, 3, 2, 5, 1, 4] #use this instead if no hold maneuver being done
+        else:
+            state_check = [0, 3, 2, 5, 1, 4] 
+            
+            
         loop_start_time = time.time()
         position = sensor.quaternion
         euler_angles = convert_quaternion(position)
@@ -157,7 +167,8 @@ try:
         current_state = [euler_angles[0], euler_angles[1], euler_angles[2], ang_vel[0], ang_vel[1], ang_vel[2]]
         #print("current event is " + str(current_event))
         
-        if abs(current_state[0]-prev_state[0]) > change_tol or abs(current_state[1]-prev_state[1]) > change_tol or abs(current_state[2]-prev_state[2]) > change_tol:
+        if abs(current_state[0]-prev_state[0]) > change_tol or abs(current_state[1]-prev_state[1]) > \
+            change_tol or abs(current_state[2]-prev_state[2]) > change_tol:
             torque = [0, 0, 0]
             #print("change too high, holding")
         
@@ -209,11 +220,12 @@ try:
                 print("commencing attitude checks")
            # print("slowing down")
              
-        elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0 and current_event!= 1:
+        elif event_complete == 1 and num_attitude_checks < len(state_check)+1 and num_attitude_checks > 0:
             #case 3 of 4 is you've finished the event and slowed down but NOT all attitudes are fixed
             
+                
             torque = [0, 0, 0] #default values
-            tol_dict = {0:5*math.pi/180, 1:10*math.pi/180, 2:10*math.pi/180}
+            tol_dict = {0:5*math.pi/180, 1:7.5*math.pi/180, 2:10*math.pi/180}
            
             omega_tol = 1*math.pi/180 #.1*math.pi/180
             omega_tar = 2*math.pi/180 #target rotational velocity during attitude fixes
@@ -274,7 +286,7 @@ try:
                     elapsed_time = time.time() - event_ending_time[len(event_ending_time)-1]
                     wait_time = event_mat[current_event+1][1]
                     if wait_time - elapsed_time > .25:
-                        omega_tol = math.pi/180 #tolero ance is 1 deg/s
+                        omega_tol = .25*math.pi/180 #tolero ance is 1 deg/s
 
                         if abs(current_state[4] - intended_state[4]) > omega_tol:
                             omega_tar = 2*math.pi/180
