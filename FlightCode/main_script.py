@@ -326,21 +326,21 @@ try:
         #figure out which thrusters to turn on based on torque -doesn't change
         #numerical integration stuff
         if torque[0] > 0: #positive roll
-            thruster_pair = [4,6] #1y, 2y
+            thruster_pair = [2,4] #1z, 2z
          #   print('+ roll')
         elif torque[0] < 0: #negative roll
-            thruster_pair = [2,8] #3y, 4y
+            thruster_pair = [6,8] #3z, 4z
           #  print('- roll')
         elif torque[1] > 0: #positive pitch
-            thruster_pair = [6,8] #1x, 4x
+            thruster_pair = [2,8] #1z, 4z
            # print('+ pitch')
         elif torque[1] < 0: #negative pitch
-            thruster_pair = [2,4] #2x, 3x
+            thruster_pair = [4,6] #2z,3z
            # print('- pitch')
         elif torque[2] > 0: #positive yaw
             thruster_pair = [3,7] #2x, 4x
            # print('+ yaw')
-        elif torque[2] < 0: #negative yawi
+        elif torque[2] < 0: #negative yaw
             thruster_pair = [1,5] #1x, 3x
            # print('- yaw')
         else: #no thrust
