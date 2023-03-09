@@ -37,27 +37,27 @@ GPIO.output(26, GPIO.LOW)
 prev_valves = [0, 0]
 valve_dict = {1:4, 2:5, 3:6, 4:22, 5:23, 6:24, 7:25, 8:26}
 
-num = 2 
+num = 1 
 
 if num == 1:
     print("\m")
     print("+ roll")
-    valves = [4,6]
+    valves = [2,4]
 
 if num == 2:
     print("\n")
     print("- roll")
-    valves = [2,8]
+    valves = [6,8]
 
 if num == 3:
     print("\n")
     print("+ pitch")
-    valves = [6,8]
+    valves = [2,8]
 
 if num == 4:
     print("\n")
     print("- pitch")
-    valves = [2,4]
+    valves = [4,6]
 
 if num == 5:
     print("\n")
