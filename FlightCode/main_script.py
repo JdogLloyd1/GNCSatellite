@@ -48,7 +48,7 @@ def sensorCalibration():
     print("Calibration complete. Proceeding...")
     time.sleep(3)
 
-sensorCalibration()
+#sensorCalibration()
 
 check = input('is CG correct?')
 
@@ -66,9 +66,10 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
     
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
-event_mat =  [[0,.2,.1,3,0*math.pi/180,10*math.pi/180], [0,.2,.1,2,-20*math.pi/180,5*math.pi/180], \
-              [0,5,.1,2,0,5*math.pi/180], [0,.2,.1,3,-30*math.pi/180,5*math.pi/180], \
-                  [0,.2,.1,1,20*math.pi/180,5*math.pi]]
+#event_mat =  [[0,.2,.1,3,0*math.pi/180,10*math.pi/180], [0,.2,.1,2,-20*math.pi/180,5*math.pi/180], \
+#              [0,5,.1,2,0,5*math.pi/180], [0,.2,.1,3,-30*math.pi/180,5*math.pi/180], \
+#                  [0,.2,.1,1,20*math.pi/180,5*math.pi]]
+event_mat = [[0,.2,.1,3,0,10*math.pi/180]]#, [0,.2,.1,3,math.pi/6,10*math.pi/180]]
 #[0,.25,.1,2,0, 5*math.pi/180], [0,.25,.1,3,45*math.pi/180,10*math.pi/180]] #[0,.`25,.1,1,30*math.pi/180,5*math.pi/180]]#[[0,.25,.1,3,1.25,.01], [0,.25,.1,2,-.517,.05], [0,.25,.1,2,0,.05], [0,.25,.1,3,1.5,.05] ]
               # do maneuvers below to get back to 0 at end, keep simple for now
               #0 .25 .1 8 0 .05; 0 .25 .1 9 pi/2 .
@@ -152,11 +153,11 @@ try:
         #print([intended_state[0]*180/math.pi, intended_state[1]*180/math.pi, intended_state[2]*180/math.pi])
         
         #have to get state check at beginning of each loop bc it's used to see where we are
-        if current_event == 1:
+        if current_event == 2:
             state_check = [3, 5] 
             #state_check = [0, 3, 2, 5, 1, 4] #use this instead if no hold maneuver being done
         else:
-            state_check = [0, 3, 2, 5, 1, 4] 
+            state_check = [0, 3, 5, 1, 4] 
             
             
         loop_start_time = time.time()
@@ -286,7 +287,7 @@ try:
                     elapsed_time = time.time() - event_ending_time[len(event_ending_time)-1]
                     wait_time = event_mat[current_event+1][1]
                     if wait_time - elapsed_time > .25:
-                        omega_tol = .25*math.pi/180 #tolero ance is 1 deg/s
+                        omega_tol = .5*math.pi/180 #tolero ance is 1 deg/s
 
                         if abs(current_state[4] - intended_state[4]) > omega_tol:
                             omega_tar = 2*math.pi/180
