@@ -19,6 +19,22 @@ from matplotlib import style
 #import time
 import datetime as dt
 
+def sensorCalibration():
+    cal_non_accl = False
+    while sensor.calibrated == False and cal_non_accl == False:
+
+        print("Sys/Gyro/Acc/Mag")
+        print(sensor.calibration_status)
+        print(sensor.calibrated)
+        print("")
+        time.sleep(.5)
+        if sensor.calibration_status[0] == 3 and sensor.calibration_status[1] == 3 and sensor.calibration_status[3] == 3:
+            cal_non_accl = True
+
+    print("Calibration complete. Proceeding...")
+    time.sleep(3)
+
+sensorCalibration()
 
 start_time = time.time()
 
@@ -46,7 +62,7 @@ def matrix_mult(matrix1, matrix2):
 
 	#Read quaternion from IMU, translate to z-y-x euler angles
 
-while time.time() - start_time < 10:	
+while time.time() - start_time < 100:	
     position = sensor.quaternion
     ang_vel = sensor.gyro
     	
@@ -56,13 +72,20 @@ while time.time() - start_time < 10:
     q3 = position[3]
     	
     phi = math.atan2(2*(q0*q1+q2*q3), 1-2*(q1**2 + q2**2)) #roll rotation
-    	
+
     #Have two options for pitch, use whichever works numerically
     inside_fun = 2*(q0*q2 - q1*q3)
-    if abs(inside_fun) < 1:
-    	theta = math.asin(2*(q0*q2 - q1*q3))
-    else:
-    	theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*(q0*q2-q1*q3))) #pitch rotation
+    if inside_fun > 1:
+        inside_fun = 1
+    elif inside_fun < -1:
+        inside_fun = -1
+        
+    #if abs(inside_fun) < 1:
+    theta = math.asin(inside_fun)
+    #else:
+     #   print(position)
+      #  theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*(q0*q2-q1*q3))) #pitch rotation
+        
     psi = math.atan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2)) #yaw rotation
     
     print("roll is" + str(phi*180/math.pi))
@@ -70,4 +93,3 @@ while time.time() - start_time < 10:
     print("yaw is" + str(psi*180/math.pi))
     print("\n")
     time.sleep(1)
-
