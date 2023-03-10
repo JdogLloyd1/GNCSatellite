@@ -21,7 +21,7 @@ import datetime as dt
 
 def sensorCalibration():
     cal_non_accl = False
-    while sensor.calibrated == False and cal_non_accl == False:
+    while sensor.calibrated == False:# and cal_non_accl == False:
 
         print("Sys/Gyro/Acc/Mag")
         print(sensor.calibration_status)
@@ -34,7 +34,7 @@ def sensorCalibration():
     print("Calibration complete. Proceeding...")
     time.sleep(3)
 
-sensorCalibration()
+#sensorCalibration()
 
 start_time = time.time()
 
@@ -62,7 +62,7 @@ def matrix_mult(matrix1, matrix2):
 
 	#Read quaternion from IMU, translate to z-y-x euler angles
 
-while time.time() - start_time < 100:	
+while time.time() - start_time < 1000:	
     position = sensor.quaternion
     ang_vel = sensor.gyro
     	

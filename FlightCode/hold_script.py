@@ -48,7 +48,7 @@ def sensorCalibration():
     print("Calibration complete. Proceeding...")
     time.sleep(3)
 
-sensorCalibration()
+#sensorCalibration()
 
 check = input('is CG correct?')
 
@@ -363,11 +363,11 @@ try:
             
             for valve in prev_valves:
                 if valve != 0:
-                    GPIO.output(valve_dict[valve], GPIO.LOW)
+                  #  GPIO.output(valve_dict[valve], GPIO.LOW)
                 
             for valve in thruster_pair:
                 if valve != 0:
-                    GPIO.output(valve_dict[valve], GPIO.HIGH)
+                   # GPIO.output(valve_dict[valve], GPIO.HIGH)
                 
         prev_valves = [thruster_pair[0], thruster_pair[1]] #reset the loop
         
