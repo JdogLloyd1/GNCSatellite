@@ -38,26 +38,32 @@ def convert_quaternion(position):
     q2 = position[2]
     q3 = position[3]
 
-    phi = math.atan2(2*(q0*q1+q2*q3), 1-2*(q1**2 + q2**2)) #roll rotation
-
-    #Have two options for pitch, use whichever works numerically
-    inside_fun = 2*(q0*q2 - q1*q3)
-    if inside_fun > 1:
-        inside_fun = 1
-    elif inside_fun < -1:
-        inside_fun = -1
+    if isinstance(q0, type(None)) or isinstance(q1, type(None)) or isinstance(q2, type(None)) or isinstance(q3, type(None)):
+        #if IMU outputs nonetype because it sucks, output a specific piece of nonsense that tells the control fn to skip the timestep
+        euler_angles = [1000, 1000, 1000]
+        return euler_angles
         
-    #if abs(inside_fun) < 1:
-    theta = math.asin(inside_fun)
-    #else:
-     #   print(position)
-      #  theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*(q0*q2-q1*q3))) #pitch rotation
-        
-    psi = math.atan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2)) #yaw rotation
+    else:
+        phi = math.atan2(2*(q0*q1+q2*q3), 1-2*(q1**2 + q2**2)) #roll rotation
 
-    euler_angles = [phi, theta, psi]
-    #print(theta)
-    return euler_angles
+        #Have two options for pitch, use whichever works numerically
+        inside_fun = 2*(q0*q2 - q1*q3)
+        if inside_fun > 1:
+            inside_fun = 1
+        elif inside_fun < -1:
+            inside_fun = -1
+            
+        #if abs(inside_fun) < 1:
+        theta = math.asin(inside_fun)
+        #else:
+         #   print(position)
+          #  theta = -math.pi/2 + 2*math.atan2(math.sqrt(1+2*(q0*q2 - q1*q3)), math.sqrt(1-2*(q0*q2-q1*q3))) #pitch rotation
+            
+        psi = math.atan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2)) #yaw rotation
+
+        euler_angles = [phi, theta, psi]
+        #print(theta)
+        return euler_angles
 
 
 def maneuver_control(current_state, intended_state, col, calc_accl, vel_tar):

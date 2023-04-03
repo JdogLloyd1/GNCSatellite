@@ -37,7 +37,7 @@ GPIO.output(26, GPIO.LOW)
 prev_valves = [0, 0]
 valve_dict = {1:4, 2:5, 3:6, 4:22, 5:23, 6:24, 7:25, 8:26}
 
-num = 6 
+num = 1 
 
 if num == 1:
     print("\m")
@@ -75,7 +75,7 @@ for valve in valves:
     if valve != 0:
         GPIO.output(valve_dict[valve], GPIO.HIGH)
     print("valve on")
-time.sleep(.5)
+time.sleep(60)
 
 for valve in valves:
     if valve != 0:
