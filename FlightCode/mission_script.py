@@ -68,7 +68,7 @@ I_inv = [[1.4425, -.1697, -2.5*10**-4], [-.1697, 1.4425, 2.4*10**-4], \
 # build the event matrix - format in documentation. Variables you're changing are 1-6, 
 # first 3 are angular positions then angular velocities. Note they'r 1 above python indeces
 
-event_mat = [[0,.2,.1,3,30*math.pi/180, 5*math.pi/180],[0,.2,.1,3,-10*math.pi/180,2*math.pi/180]]
+event_mat = [[0,.2,.1,3,-10*math.pi/180,2*math.pi/180],[0,.2,.1,2,-20*math.pi/180,2*math.pi/180], [0,3,.1,2,0,5*math.pi/180]]
 
 # Initialize state with IMU data
 
@@ -152,7 +152,10 @@ try:
         
 
         
-        state_check = [0, 3, 2, 1, 4]
+        if current_event == 2:
+            state_check = [3, 5]
+        else:
+            state_check = [0, 3, 2, 1, 4]
             
             
         loop_start_time = time.time()
